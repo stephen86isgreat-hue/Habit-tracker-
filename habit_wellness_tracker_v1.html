@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#111827" />
+<title>Habit & Wellness Tracker V1</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4f4f5;
+  --card: #ffffff;
+  --text: #18181b;
+  --muted: #71717a;
+  --border: #d4d4d8;
+  --accent: #2563eb;
+  --success: #15803d;
+  --danger: #b91c1c;
+  --soft: #e4e4e7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --card: #111827;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: #334155;
+    --accent: #60a5fa;
+    --success: #4ade80;
+    --danger: #f87171;
+    --soft: #1f2937;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.app {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 14px;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  padding: 8px 0 12px;
+}
+h1 { font-size: 1.35rem; margin: 0 0 4px; }
+.date { font-weight: 700; font-size: 1.05rem; }
+.subtle { color: var(--muted); font-size: .9rem; }
+.score {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 14px;
+}
+.score-line {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  font-weight:700;
+}
+.progress {
+  height: 10px;
+  margin-top: 8px;
+  background: var(--soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress > div {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width .2s ease;
+}
+.grid {
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
+.card h2 {
+  font-size:1.05rem;
+  margin:0 0 10px;
+}
+.row {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.between {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+button {
+  border:1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:.95rem;
+  font-weight:650;
+  cursor:pointer;
+}
+button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: transparent;
+}
+button.good {
+  color: var(--success);
+}
+button.danger {
+  color: var(--danger);
+}
+button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+.big-btn {
+  min-height:54px;
+  flex:1;
+}
+.counter {
+  font-size:1.4rem;
+  font-weight:800;
+}
+.small { font-size:.85rem; color:var(--muted); }
+.goal {
+  padding:10px 0;
+  border-top:1px solid var(--border);
+}
+.goal:first-of-type { border-top:0; }
+input, select, textarea {
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  font:inherit;
+}
+textarea { min-height:88px; resize:vertical; }
+.log {
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.log-item {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  border-top:1px solid var(--border);
+  padding-top:8px;
+}
+.log-text { flex:1; }
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:50;
+}
+.modal.open { display:flex; }
+.sheet {
+  width:min(100%, 700px);
+  background:var(--card);
+  color:var(--text);
+  border-radius:18px 18px 0 0;
+  padding:16px;
+  max-height:85vh;
+  overflow:auto;
+}
+.sheet h3 { margin-top:0; }
+.form-grid {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.wellness {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.well-card {
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+}
+.done {
+  outline:2px solid var(--success);
+}
+.missed {
+  opacity:.65;
+}
+.badge {
+  display:inline-block;
+  padding:3px 7px;
+  border-radius:999px;
+  font-size:.75rem;
+  border:1px solid var(--border);
+  color:var(--muted);
+}
+.footer-space { height:30px; }
+@media (min-width: 760px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .span-2 { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Habit & Wellness Tracker</h1>
+    <div class="date" id="trackingDate"></div>
+    <div class="subtle">Tracking day: 0600–0559</div>
+    <div class="score">
+      <div class="score-line">
+        <span id="scoreText">0 of 16 completed</span>
+        <span id="scorePct">0%</span>
+      </div>
+      <div class="progress"><div id="scoreBar"></div></div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Wellness Check-ins</h2>
+      <div class="wellness" id="wellnessGrid"></div>
+      <div class="small" style="margin-top:8px;">Windows: 0700–0759, 1200–1259, 1700–1759</div>
+    </section>
+
+    <section class="card">
+      <h2>Focused Prayer</h2>
+      <div class="row">
+        <button class="big-btn" data-prayer="0">Prayer 1</button>
+        <button class="big-btn" data-prayer="1">Prayer 2</button>
+        <button class="big-btn" data-prayer="2">Prayer 3</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Bible Reading</h2>
+      <div class="small" id="lastReading">Last Reading: none yet</div>
+      <button class="primary big-btn" style="margin-top:10px;width:100%;" onclick="openModal('bibleModal')">Log Today’s Reading</button>
+      <div id="bibleSummary" class="log"></div>
+    </section>
+
+    <section class="card">
+      <h2>Nicotine Pouches</h2>
+      <div class="between">
+        <div>
+          <div class="counter"><span id="pouchCount">0</span> today</div>
+          <div class="small">Avg duration: <span id="pouchAvg">—</span></div>
+        </div>
+        <div class="row">
+          <button class="primary" id="pouchInBtn">Pouch In</button>
+          <button id="pouchOutBtn" disabled>Pouch Out</button>
+        </div>
+      </div>
+      <div class="small" id="activePouch" style="margin-top:8px;"></div>
+      <div class="log" id="pouchLog"></div>
+    </section>
+
+    <section class="card">
+      <h2>Quick Logs</h2>
+      <div class="row">
+        <button class="big-btn" onclick="openModal('foodModal')">Log Food</button>
+        <button class="big-btn" onclick="openModal('drinkModal')">Log Drink</button>
+        <button class="big-btn" onclick="openModal('energyModal')">Energy Drink</button>
+      </div>
+      <div class="small" style="margin-top:10px;">Regular beverages: <strong id="drinkCount">0</strong> • Energy drinks: <strong id="energyCount">0</strong></div>
+    </section>
+
+    <section class="card">
+      <h2>Bathroom</h2>
+      <div class="row">
+        <button class="big-btn" id="bath1Btn">+ #1</button>
+        <button class="big-btn" id="bath2Btn">+ #2</button>
+      </div>
+      <div class="between" style="margin-top:10px;">
+        <div class="counter">#1: <span id="bath1Count">0</span></div>
+        <button class="danger" id="bath1Undo">Undo</button>
+      </div>
+      <div class="between" style="margin-top:8px;">
+        <div class="counter">#2: <span id="bath2Count">0</span></div>
+        <button class="danger" id="bath2Undo">Undo</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Exercise</h2>
+      <div id="exerciseArea"></div>
+      <div class="goal">
+        <div class="between"><strong>Front plank</strong><span>60 sec</span></div>
+        <button data-check="frontPlank" style="width:100%;margin-top:8px;">Complete</button>
+      </div>
+      <div class="goal">
+        <div class="between"><strong>Left plank</strong><span>30 sec</span></div>
+        <button data-check="leftPlank" style="width:100%;margin-top:8px;">Complete</button>
+      </div>
+      <div class="goal">
+        <div class="between"><strong>Right plank</strong><span>30 sec</span></div>
+        <button data-check="rightPlank" style="width:100%;margin-top:8px;">Complete</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Hygiene & Creatine</h2>
+      <div class="goal">
+        <button data-check="brush" style="width:100%;">Brush Teeth</button>
+      </div>
+      <div class="goal">
+        <button data-check="shower" style="width:100%;">Shower</button>
+      </div>
+      <div class="goal">
+        <div class="small">Creatine reminder: 10:00 AM</div>
+        <button data-check="creatine" style="width:100%;margin-top:6px;">3 Creatine Gummies Taken</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Body Weight</h2>
+      <div class="row">
+        <input id="weightInput" type="number" inputmode="decimal" placeholder="Weight" />
+        <button id="saveWeight">Save Monthly Weight</button>
+      </div>
+      <div class="small" id="weightStatus" style="margin-top:8px;"></div>
+    </section>
+
+    <section class="card span-2">
+      <h2>Today’s Food & Drinks</h2>
+      <div class="log" id="consumptionLog"></div>
+    </section>
+
+    <section class="card span-2">
+      <h2>Daily Notes</h2>
+      <textarea id="dailyNotes" placeholder="Anything worth remembering about today..."></textarea>
+    </section>
+
+    <section class="card span-2">
+      <h2>Prototype Controls</h2>
+      <div class="row">
+        <button id="exportBtn">Export Today JSON</button>
+        <button class="danger" id="resetBtn">Reset Test Data</button>
+      </div>
+      <div class="small" style="margin-top:8px;">This prototype stores today’s data in your browser on this device.</div>
+    </section>
+  </main>
+  <div class="footer-space"></div>
+</div>
+
+<div class="modal" id="foodModal">
+  <div class="sheet">
+    <h3>Log Food</h3>
+    <div class="form-grid">
+      <textarea id="foodText" placeholder="What did you eat?"></textarea>
+      <div class="row">
+        <button class="primary" onclick="saveFood()">Save</button>
+        <button onclick="closeModal('foodModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="drinkModal">
+  <div class="sheet">
+    <h3>Log Drink</h3>
+    <div class="form-grid">
+      <input id="drinkText" placeholder="What did you drink?" />
+      <select id="drinkUnit">
+        <option>Cup</option>
+        <option>Bottle</option>
+        <option>Can</option>
+      </select>
+      <div class="row">
+        <button class="primary" onclick="saveDrink()">Save</button>
+        <button onclick="closeModal('drinkModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="energyModal">
+  <div class="sheet">
+    <h3>Log Energy Drink</h3>
+    <div class="form-grid">
+      <input id="energyText" placeholder="Type / brand" />
+      <div class="row">
+        <button class="primary" onclick="saveEnergy()">Save</button>
+        <button onclick="closeModal('energyModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="bibleModal">
+  <div class="sheet">
+    <h3>Log Bible Reading</h3>
+    <div class="form-grid">
+      <input id="bibleMinutes" type="number" inputmode="numeric" placeholder="Minutes spent reading" />
+      <input id="bibleBook" placeholder="Book (e.g. Romans)" />
+      <input id="bibleChapter" placeholder="Chapter" />
+      <input id="bibleVerses" placeholder="Verses (e.g. 1-17)" />
+      <input id="bibleStandout" placeholder="Verse that stood out most" />
+      <div class="row">
+        <button class="primary" onclick="saveBible()">Save</button>
+        <button onclick="closeModal('bibleModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="wellnessModal">
+  <div class="sheet">
+    <h3 id="wellnessTitle">Wellness Check-in</h3>
+    <div class="form-grid">
+      <button class="good" onclick="saveWellness('well')">I am well</button>
+      <textarea id="symptomText" placeholder="Describe symptoms in your own words"></textarea>
+      <button class="primary" onclick="saveWellness('symptoms')">Save Symptoms</button>
+      <button onclick="closeModal('wellnessModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const RESET_HOUR = 6;
+const GOAL_TOTAL = 16;
+const EXERCISES = {
+  pushups: {label:'Push-ups', goal:50},
+  squats: {label:'Squats', goal:20},
+  dips: {label:'Dips', goal:25}
+};
+const QUICK = [5,10,20,25];
+const WELLNESS = [
+  {time:'0700', hour:7, label:'0700'},
+  {time:'1200', hour:12, label:'1200'},
+  {time:'1700', hour:17, label:'1700'}
+];
+
+function trackingKey(date = new Date()) {
+  const d = new Date(date);
+  if (d.getHours() < RESET_HOUR) d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0,10);
+}
+function trackingDateLabel() {
+  const d = new Date();
+  if (d.getHours() < RESET_HOUR) d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+function nowTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+function emptyState() {
+  return {
+    prayers:[false,false,false],
+    wellness:[null,null,null],
+    bible:null,
+    pouches:[],
+    activePouch:null,
+    food:[],
+    drinks:[],
+    energy:[],
+    bathroom:{one:0,two:0},
+    exercise:{pushups:0,squats:0,dips:0},
+    checks:{frontPlank:false,leftPlank:false,rightPlank:false,brush:false,shower:false,creatine:false},
+    weight:null,
+    notes:''
+  };
+}
+let state = loadState();
+let activeWellness = null;
+
+function loadState() {
+  const key = 'habit-tracker-v1-' + trackingKey();
+  try { return JSON.parse(localStorage.getItem(key)) || emptyState(); }
+  catch { return emptyState(); }
+}
+function saveState() {
+  state.notes = document.getElementById('dailyNotes')?.value ?? state.notes;
+  localStorage.setItem('habit-tracker-v1-' + trackingKey(), JSON.stringify(state));
+}
+function fmtDuration(ms) {
+  const mins = Math.max(0, Math.round(ms/60000));
+  return mins + ' min';
+}
+function goalCount() {
+  let c = 0;
+  c += state.prayers.filter(Boolean).length;
+  c += state.wellness.filter(x => x && (x.status==='well' || x.status==='symptoms')).length;
+  if (state.bible) c++;
+  if (state.exercise.pushups >= 50) c++;
+  if (state.exercise.squats >= 20) c++;
+  if (state.exercise.dips >= 25) c++;
+  c += ['frontPlank','leftPlank','rightPlank','brush','shower','creatine'].filter(k => state.checks[k]).length;
+  return c;
+}
+function render() {
+  document.getElementById('trackingDate').textContent = trackingDateLabel();
+  document.getElementById('dailyNotes').value = state.notes || '';
+  renderScore();
+  renderPrayer();
+  renderWellness();
+  renderBible();
+  renderPouches();
+  renderBathroom();
+  renderExercise();
+  renderChecks();
+  renderConsumption();
+  renderWeight();
+}
+function renderScore() {
+  const c = goalCount();
+  const pct = Math.round(c/GOAL_TOTAL*100);
+  document.getElementById('scoreText').textContent = `${c} of ${GOAL_TOTAL} completed`;
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('scoreBar').style.width = `${pct}%`;
+}
+function renderPrayer() {
+  document.querySelectorAll('[data-prayer]').forEach(btn => {
+    const i = +btn.dataset.prayer;
+    btn.textContent = state.prayers[i] ? `Prayer ${i+1} ✓` : `Prayer ${i+1}`;
+    btn.classList.toggle('done', state.prayers[i]);
+    btn.onclick = () => { state.prayers[i] = !state.prayers[i]; saveState(); render(); };
+  });
+}
+function wellnessWindowStatus(idx) {
+  const now = new Date();
+  const hour = WELLNESS[idx].hour;
+  const start = new Date(now); start.setHours(hour,0,0,0);
+  const end = new Date(now); end.setHours(hour,59,59,999);
+  if (now < start) return 'upcoming';
+  if (now <= end) return 'due';
+  return 'closed';
+}
+function renderWellness() {
+  const grid = document.getElementById('wellnessGrid');
+  grid.innerHTML = '';
+  WELLNESS.forEach((w,i) => {
+    const item = state.wellness[i];
+    const status = wellnessWindowStatus(i);
+    const div = document.createElement('div');
+    div.className = 'well-card' + (item ? ' done' : '');
+    let label = item ? (item.status === 'well' ? 'Well ✓' : 'Symptoms ✓') : (status==='closed' ? 'Missed' : status==='due' ? 'Due' : 'Upcoming');
+    div.innerHTML = `<strong>${w.label}</strong><div class="small">${label}</div>`;
+    if (!item && status !== 'closed') {
+      const b = document.createElement('button');
+      b.textContent='Check in';
+      b.style.marginTop='6px';
+      b.onclick = () => { activeWellness = i; document.getElementById('wellnessTitle').textContent = `${w.label} Wellness Check-in`; openModal('wellnessModal'); };
+      div.appendChild(b);
+    }
+    if (item && item.status === 'symptoms' && item.text) {
+      const p = document.createElement('div'); p.className='small'; p.style.marginTop='6px'; p.textContent=item.text; div.appendChild(p);
+    }
+    grid.appendChild(div);
+  });
+}
+function saveWellness(status) {
+  if (activeWellness === null) return;
+  const text = document.getElementById('symptomText').value.trim();
+  if (status === 'symptoms' && !text) return alert('Describe the symptoms first.');
+  state.wellness[activeWellness] = {status, text: status==='symptoms' ? text : '', savedAt:new Date().toISOString()};
+  document.getElementById('symptomText').value='';
+  closeModal('wellnessModal');
+  activeWellness = null;
+  saveState(); render();
+}
+function renderBible() {
+  const sum = document.getElementById('bibleSummary');
+  sum.innerHTML='';
+  if (state.bible) {
+    sum.innerHTML = `<div class="log-item"><div class="log-text"><strong>${state.bible.book} ${state.bible.chapter}:${state.bible.verses}</strong><div class="small">${state.bible.minutes || 0} min • Standout: ${state.bible.standout || '—'}</div></div><button class="danger" onclick="deleteBible()">Delete</button></div>`;
+    document.getElementById('lastReading').textContent = `Today: ${state.bible.book} ${state.bible.chapter}:${state.bible.verses}`;
+  } else {
+    const last = localStorage.getItem('habit-tracker-v1-last-reading');
+    document.getElementById('lastReading').textContent = last ? `Last Reading: ${last}` : 'Last Reading: none yet';
+  }
+}
+function saveBible() {
+  const book = document.getElementById('bibleBook').value.trim();
+  const chapter = document.getElementById('bibleChapter').value.trim();
+  const verses = document.getElementById('bibleVerses').value.trim();
+  if (!book || !chapter || !verses) return alert('Book, chapter, and verses are required.');
+  state.bible = {
+    minutes:+document.getElementById('bibleMinutes').value || 0,
+    book, chapter, verses,
+    standout:document.getElementById('bibleStandout').value.trim(),
+    time:nowTime()
+  };
+  localStorage.setItem('habit-tracker-v1-last-reading', `${book} ${chapter}:${verses}`);
+  closeModal('bibleModal'); saveState(); render();
+}
+function deleteBible() { state.bible=null; saveState(); render(); }
+function renderPouches() {
+  document.getElementById('pouchCount').textContent = state.pouches.length;
+  const durations = state.pouches.map(p => new Date(p.out)-new Date(p.in));
+  document.getElementById('pouchAvg').textContent = durations.length ? fmtDuration(durations.reduce((a,b)=>a+b,0)/durations.length) : '—';
+  document.getElementById('pouchInBtn').disabled = !!state.activePouch;
+  document.getElementById('pouchOutBtn').disabled = !state.activePouch;
+  document.getElementById('activePouch').textContent = state.activePouch ? `Active since ${new Date(state.activePouch.in).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '';
+  const log = document.getElementById('pouchLog');
+  log.innerHTML='';
+  state.pouches.forEach((p,i) => {
+    const div=document.createElement('div'); div.className='log-item';
+    const a=new Date(p.in), b=new Date(p.out);
+    div.innerHTML=`<div class="log-text">#${i+1} • ${a.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} → ${b.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<div class="small">${fmtDuration(b-a)}</div></div><button class="danger" onclick="deletePouch(${i})">Delete</button>`;
+    log.appendChild(div);
+  });
+}
+document.getElementById('pouchInBtn').onclick = () => { state.activePouch={in:new Date().toISOString()}; saveState(); render(); };
+document.getElementById('pouchOutBtn').onclick = () => {
+  if (!state.activePouch) return;
+  state.pouches.push({in:state.activePouch.in,out:new Date().toISOString()});
+  state.activePouch=null; saveState(); render();
+};
+function deletePouch(i) { state.pouches.splice(i,1); saveState(); render(); }
+function saveFood() {
+  const text=document.getElementById('foodText').value.trim();
+  if(!text) return;
+  state.food.push({time:nowTime(),text});
+  document.getElementById('foodText').value='';
+  closeModal('foodModal'); saveState(); render();
+}
+function saveDrink() {
+  const text=document.getElementById('drinkText').value.trim();
+  if(!text) return;
+  state.drinks.push({time:nowTime(),text,unit:document.getElementById('drinkUnit').value});
+  document.getElementById('drinkText').value='';
+  closeModal('drinkModal'); saveState(); render();
+}
+function saveEnergy() {
+  const text=document.getElementById('energyText').value.trim();
+  if(!text) return;
+  state.energy.push({time:nowTime(),text});
+  document.getElementById('energyText').value='';
+  closeModal('energyModal'); saveState(); render();
+}
+function renderConsumption() {
+  document.getElementById('drinkCount').textContent=state.drinks.length;
+  document.getElementById('energyCount').textContent=state.energy.length;
+  const all = [
+    ...state.food.map((x,i)=>({...x,kind:'Food',source:'food',idx:i})),
+    ...state.drinks.map((x,i)=>({...x,kind:'Drink',source:'drinks',idx:i})),
+    ...state.energy.map((x,i)=>({...x,kind:'Energy',source:'energy',idx:i}))
+  ];
+  const log=document.getElementById('consumptionLog'); log.innerHTML='';
+  if(!all.length) { log.innerHTML='<div class="small">Nothing logged yet.</div>'; return; }
+  all.forEach(x=>{
+    const div=document.createElement('div'); div.className='log-item';
+    const detail = x.source==='drinks' ? `${x.text} — ${x.unit}` : x.text;
+    div.innerHTML=`<div class="log-text"><strong>${x.time}</strong> • ${x.kind}<div class="small">${detail}</div></div><button class="danger" onclick="deleteConsumption('${x.source}',${x.idx})">Delete</button>`;
+    log.appendChild(div);
+  });
+}
+function deleteConsumption(source,idx){ state[source].splice(idx,1); saveState(); render(); }
+
+document.getElementById('bath1Btn').onclick=()=>{state.bathroom.one++;saveState();render();};
+document.getElementById('bath2Btn').onclick=()=>{state.bathroom.two++;saveState();render();};
+document.getElementById('bath1Undo').onclick=()=>{state.bathroom.one=Math.max(0,state.bathroom.one-1);saveState();render();};
+document.getElementById('bath2Undo').onclick=()=>{state.bathroom.two=Math.max(0,state.bathroom.two-1);saveState();render();};
+function renderBathroom(){
+  document.getElementById('bath1Count').textContent=state.bathroom.one;
+  document.getElementById('bath2Count').textContent=state.bathroom.two;
+}
+function renderExercise(){
+  const area=document.getElementById('exerciseArea'); area.innerHTML='';
+  Object.entries(EXERCISES).forEach(([key,ex])=>{
+    const div=document.createElement('div'); div.className='goal';
+    const current=state.exercise[key];
+    div.innerHTML=`<div class="between"><strong>${ex.label}</strong><span>${current}/${ex.goal}</span></div>
+      <div class="progress"><div style="width:${Math.min(100,current/ex.goal*100)}%"></div></div>
+      <div class="row" style="margin-top:8px;" id="${key}Btns"></div>`;
+    area.appendChild(div);
+    const r=div.querySelector(`#${key}Btns`);
+    QUICK.forEach(n=>{
+      const b=document.createElement('button'); b.textContent=`+${n}`;
+      b.onclick=()=>{state.exercise[key]+=n;saveState();render();}; r.appendChild(b);
+    });
+    const undo=document.createElement('button'); undo.textContent='Undo'; undo.className='danger';
+    undo.onclick=()=>{state.exercise[key]=Math.max(0,state.exercise[key]-5);saveState();render();}; r.appendChild(undo);
+  });
+}
+function renderChecks(){
+  document.querySelectorAll('[data-check]').forEach(btn=>{
+    const k=btn.dataset.check, done=!!state.checks[k];
+    btn.classList.toggle('done',done);
+    btn.textContent = done ? 'Completed ✓' : ({frontPlank:'Complete',leftPlank:'Complete',rightPlank:'Complete',brush:'Brush Teeth',shower:'Shower',creatine:'3 Creatine Gummies Taken'}[k]);
+    btn.onclick=()=>{state.checks[k]=!state.checks[k];saveState();render();};
+  });
+}
+document.getElementById('saveWeight').onclick=()=>{
+  const val=parseFloat(document.getElementById('weightInput').value);
+  if(!val) return;
+  state.weight={value:val,time:new Date().toISOString()};
+  saveState(); render();
+};
+function renderWeight(){
+  document.getElementById('weightStatus').textContent = state.weight ? `Saved this tracking day: ${state.weight.value}` : 'No weight saved for this tracking day.';
+}
+document.getElementById('dailyNotes').addEventListener('input', ()=>saveState());
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('Reset all test data for this tracking day?')) {
+    localStorage.removeItem('habit-tracker-v1-' + trackingKey());
+    state=emptyState(); render();
+  }
+};
+document.getElementById('exportBtn').onclick=()=>{
+  saveState();
+  const blob=new Blob([JSON.stringify({trackingDay:trackingKey(),data:state},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`habit-tracker-${trackingKey()}.json`; a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+setInterval(()=>{
+  const currentKey=trackingKey();
+  const storedKey = document.body.dataset.key;
+  if(!storedKey) document.body.dataset.key=currentKey;
+  if(document.body.dataset.key!==currentKey) {
+    document.body.dataset.key=currentKey;
+    state=loadState(); render();
+  } else {
+    renderWellness();
+    document.getElementById('trackingDate').textContent=trackingDateLabel();
+  }
+}, 60000);
+
+document.body.dataset.key=trackingKey();
+render();
+</script>
+</body>
+</html>
